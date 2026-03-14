@@ -1,21 +1,23 @@
 {
   "name": "sinewix-addon",
-  "version": "1.0.0",
-  "description": "Sinewix tabanlı Nuvio/Stremio addon",
-  "main": "server.js",
+  "version": "1.1.0",
+  "description": "Sinewix Stremio eklentisi",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js"
+    "start": "node index.js"
   },
+  "keywords": [
+    "stremio",
+    "addon",
+    "streaming",
+    "turkish",
+    "series"
+  ],
+  "author": "",
+  "license": "MIT",
   "dependencies": {
-    "stremio-addon-sdk": "^1.6.10",
-    "axios": "^1.6.0",
-    "express": "^4.18.2"
+    "node-fetch": "^3.3.2",
+    "stremio-addon-sdk": "^1.6.10"
   },
-  "devDependencies": {
-    "nodemon": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "type": "module"
 }
