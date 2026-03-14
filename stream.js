@@ -1,50 +1,53 @@
-const { getStreams, getEpisodeStreams } = require('./api');
+const { getSeries, getSerieDetail } = require('./api');
 
-function toStremioStream(stream) {
-  // Stream objesi API'ye göre uyarlanmalı
-  // Olası alanlar: url, title, quality, lang
+// EasyPlex video objesi → Stremio stream
+function toStremioStream(video) {
+  if (!video.link || !video.status) return null;
+
+  const title = [
+    video.lang ? `🌐 ${video.lang}` : null,
+    video.server || null,
+    video.hls ? 'HLS' : null,
+  ].filter(Boolean).join(' · ') || 'İzle';
+
   return {
-    url: stream.url || stream.link || stream.src,
-    title: buildTitle(stream),
+    url: video.link,
+    title,
     behaviorHints: {
-      notWebReady: false,
+      notWebReady: video.supported_hosts === 1,
     },
   };
 }
 
-function buildTitle(stream) {
-  const parts = [];
-  if (stream.quality) parts.push(stream.quality);
-  if (stream.lang || stream.language) parts.push(stream.lang || stream.language);
-  if (stream.source || stream.server) parts.push(`[${stream.source || stream.server}]`);
-  return parts.length ? parts.join(' · ') : 'İzle';
-}
-
 async function streamHandler({ type, id }) {
-  // Film:  sinewix:12345
-  // Dizi:  sinewix:12345:2:5  (id:sezon:bölüm)
+  // Film:  sinewix:movie:123
+  // Dizi:  sinewix:series:123:2:5
   const parts = id.split(':');
-  const sinewixId = parts[1];
+  // parts: ['sinewix', 'movie'|'series', id, season?, episode?]
+  const sinewixId = parts[2];
+  const season = parseInt(parts[3] || '1');
+  const episode = parseInt(parts[4] || '1');
 
   try {
-    let raw;
+    if (type === 'series') {
+      const item = await getSerieDetail(sinewixId);
+      if (!item) return { streams: [] };
 
-    if (type === 'movie') {
-      raw = await getStreams(sinewixId, 'movie');
+      const seasonObj = (item.seasons || []).find(s => s.season_number === season);
+      if (!seasonObj) return { streams: [] };
+
+      const epObj = (seasonObj.episodes || []).find(e => e.episode_number === episode);
+      if (!epObj) return { streams: [] };
+
+      const streams = (epObj.videos || [])
+        .map(toStremioStream)
+        .filter(Boolean);
+
+      return { streams };
     } else {
-      // series → sinewix:ID:SEASON:EPISODE
-      const season = parts[2] || '1';
-      const episode = parts[3] || '1';
-      raw = await getEpisodeStreams(sinewixId, season, episode);
+      // Film stream'i — ileride film detay endpoint'i bulununca eklenecek
+      return { streams: [] };
     }
-
-    const list = raw?.data || raw?.streams || raw || [];
-
-    const streams = Array.isArray(list)
-      ? list.map(toStremioStream).filter(s => s.url)
-      : [];
-
-    return { streams };
   } catch (err) {
     console.error('[stream] Hata:', err.message);
     return { streams: [] };

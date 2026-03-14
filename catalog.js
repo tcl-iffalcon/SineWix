@@ -1,40 +1,40 @@
-const { getMovies, getSeries, search } = require('./api');
+const { getMovies, getSeries } = require('./api');
 
-// Sinewix item → Stremio meta (katalog kartı)
+// EasyPlex response → Stremio meta kartı
 function toMetaPreview(item, type) {
   return {
-    id: `sinewix:${item.id}`,
+    id: `sinewix:${type}:${item.id}`,
     type,
-    name: item.title || item.name || 'Bilinmiyor',
-    poster: item.poster || item.image || null,
-    background: item.backdrop || item.background || null,
-    description: item.overview || item.description || '',
-    genres: item.genres || [],
-    year: item.year || item.release_year || null,
-    imdbRating: item.imdb_rating || item.rating || null,
+    name: item.title || item.name || item.original_name || 'Bilinmiyor',
+    poster: item.poster_path || null,
+    background: item.backdrop_path_tv || item.backdrop_path || null,
+    description: item.overview || '',
+    genres: item.genreslist || [],
+    year: item.release_date
+      ? parseInt(item.release_date.substring(0, 4))
+      : item.first_air_date
+        ? parseInt(item.first_air_date.substring(0, 4))
+        : null,
+    imdbRating: item.vote_average ? String(item.vote_average.toFixed(1)) : null,
   };
 }
 
 async function catalogHandler({ type, id, extra }) {
-  const { genre, sort, skip } = extra || {};
+  const { genre, skip } = extra || {};
   const page = skip ? Math.floor(parseInt(skip) / 20) + 1 : 1;
 
   try {
     let raw;
-
     if (type === 'movie') {
-      raw = await getMovies({ page, genre, sort });
+      raw = await getMovies({ page, genre });
     } else {
-      raw = await getSeries({ page, genre, sort });
+      raw = await getSeries({ page, genre });
     }
 
-    // API'den gelen liste (data veya results veya dizi direkt)
-    const items = raw?.data || raw?.results || raw || [];
+    // EasyPlex: { data: [...], current_page, last_page } veya direkt dizi
+    const items = raw?.data || raw?.results || (Array.isArray(raw) ? raw : []);
 
-    const metas = Array.isArray(items)
-      ? items.map(item => toMetaPreview(item, type))
-      : [];
-
+    const metas = items.map(item => toMetaPreview(item, type));
     return { metas };
   } catch (err) {
     console.error('[catalog] Hata:', err.message);
