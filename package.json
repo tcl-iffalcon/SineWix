@@ -1,12 +1,12 @@
 {
   "name": "sinewix-addon",
-  "version": "1.1.0",
-  "description": "Sinewix Stremio eklentisi",
+  "version": "1.0.0",
+  "description": "Türkçe film, dizi ve anime — SineWix Nuvio eklentisi",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": ["stremio", "addon", "streaming", "turkish", "series"],
+  "keywords": ["stremio", "addon", "turkish", "nuvio"],
   "author": "",
   "license": "MIT",
   "dependencies": {
