@@ -6,18 +6,11 @@
   "scripts": {
     "start": "node index.js"
   },
-  "keywords": [
-    "stremio",
-    "addon",
-    "streaming",
-    "turkish",
-    "series"
-  ],
+  "keywords": ["stremio", "addon", "streaming", "turkish", "series"],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "node-fetch": "^3.3.2",
+    "node-fetch": "^2.7.0",
     "stremio-addon-sdk": "^1.6.10"
-  },
-  "type": "module"
+  }
 }
