@@ -32,17 +32,14 @@ app.use(function(req, res, next) {
 // ROUTES
 // -------------------------------------------------------
 
-// Manifest
 app.get("/manifest.json", function(req, res) {
   res.json(provider.manifest);
 });
 
-// Catalog
-// WuPlay extra parametrelerini query string olarak gönderir: ?skip=0&search=...
 app.get("/catalog/:type/:id.json", function(req, res) {
   var type  = req.params.type;
   var id    = req.params.id;
-  var extra = req.query; // { skip, search, ... }
+  var extra = req.query;
 
   provider.getCatalog(type, id, extra)
     .then(function(result) { res.json(result); })
@@ -52,7 +49,6 @@ app.get("/catalog/:type/:id.json", function(req, res) {
     });
 });
 
-// Meta
 app.get("/meta/:type/:id.json", function(req, res) {
   var type = req.params.type;
   var id   = req.params.id;
@@ -65,7 +61,6 @@ app.get("/meta/:type/:id.json", function(req, res) {
     });
 });
 
-// Stream
 app.get("/stream/:type/:id.json", function(req, res) {
   var type = req.params.type;
   var id   = req.params.id;
@@ -78,23 +73,24 @@ app.get("/stream/:type/:id.json", function(req, res) {
     });
 });
 
-// Health check
 app.get("/", function(req, res) {
   res.json({ status: "ok", addon: provider.manifest.name, version: provider.manifest.version });
 });
 
-// 404
 app.use(function(req, res) {
   res.status(404).json({ error: "not found" });
 });
 
 // -------------------------------------------------------
-// START
+// START — Vercel için module.exports, lokal için listen
 // -------------------------------------------------------
-app.listen(PORT, function() {
-  console.log("========================================");
-  console.log("SineWix WuPlay Addon çalışıyor");
-  console.log("Port    : " + PORT);
-  console.log("Manifest: http://localhost:" + PORT + "/manifest.json");
-  console.log("========================================");
-});
+if (require.main === module) {
+  app.listen(PORT, function() {
+    console.log("Legacy server listening...");
+    console.log("SineWix WuPlay Addon çalışıyor");
+    console.log("Port    : " + PORT);
+    console.log("Manifest: http://localhost:" + PORT + "/manifest.json");
+  });
+}
+
+module.exports = app;
